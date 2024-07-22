@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apartment Search</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        form {
+            display: grid;
+            gap: 10px;
+        }
+        #results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Apartment Search</h1>
+    <form id="searchForm">
+        <label>
+            Name:
+            <input type="text" name="name">
+        </label>
+        <label>
+            Gender:
+            <select name="gender">
+                <option value="">Any</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+            </select>
+        </label>
+        <label>
+            Max Cost:
+            <input type="number" name="maxCost">
+        </label>
+        <label>
+            Amenities:
+            <div>
+                <input type="checkbox" name="pool" value="Y">
+                <label for="pool">Pool</label>
+            </div>
+            <div>
+                <input type="checkbox" name="unitLaundry" value="Y">
+                <label for="unitLaundry">Unit Laundry</label>
+            </div>
+            <div>
+                <input type="checkbox" name="gym" value="Y">
+                <label for="gym">Gym</label>
+            </div>
+            <div>
+                <input type="checkbox" name="grill" value="Y">
+                <label for="grill">Grill</label>
+            </div>
+        </label>
+        <button type="submit">Search</button>
+    </form>
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const searchParams = new URLSearchParams(formData);
+            
+            try {
+                const response = await fetch(`/api/search?${searchParams.toString()}`);
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<p>No results found.</p>';
+                return;
+            }
+
+            const ul = document.createElement('ul');
+            results.forEach(apartment => {
+                const li = document.createElement('li');
+                li.textContent = `${apartment.name} - ${apartment.gender} - $${apartment.avg_cost}`;
+                ul.appendChild(li);
+            });
+            resultsDiv.appendChild(ul);
+        }
+    </script>
+</body>
+</html>
