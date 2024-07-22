@@ -8,9 +8,9 @@ let pool;
 async function initializePool() {
     try {
         pool = await mysql.createPool({
-            host: 'localhost',
-            user: 'dallin',
-            password: 'hawbeast',
+            host: 'http://144.126.209.75/',
+            user: 'admin',
+            password: 'cb2fa842dceceb9319ba8d962fc07a96c7aae663b047f592',
             database: 'class_project',
             waitForConnections: true,
             connectionLimit: 10,
