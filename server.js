@@ -34,9 +34,10 @@ app.get('/api/search', async (req, res) => {
         const { name, gender, maxCost, pool: hasPool, unitLaundry, gym, grill } = req.query;
         
         let query = `
-            SELECT DISTINCT a.* 
+            SELECT DISTINCT a.*, ac.website, ac.email, ac.address 
             FROM apartment a
             LEFT JOIN amenities am ON a.apartment_id = am.apartment_id
+            LEFT JOIN \`apt contact\` ac ON a.apartment_id = ac.apartment_id
             WHERE 1=1
         `;
         const params = [];

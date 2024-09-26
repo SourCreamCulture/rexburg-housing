@@ -12,13 +12,17 @@
             margin: 0 auto;
             padding: 20px;
         }
-        
         form {
             display: grid;
             gap: 10px;
         }
         #results {
             margin-top: 20px;
+        }
+        .apartment {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -88,13 +92,19 @@
                 return;
             }
 
-            const ul = document.createElement('ul');
             results.forEach(apartment => {
-                const li = document.createElement('li');
-                li.textContent = `${apartment.name} - ${apartment.gender} - $${apartment.avg_cost}`;
-                ul.appendChild(li);
+                const apartmentDiv = document.createElement('div');
+                apartmentDiv.className = 'apartment';
+                apartmentDiv.innerHTML = `
+                    <h2>${apartment.name}</h2>
+                    <p>Gender: ${apartment.gender}</p>
+                    <p>Average Cost: $${apartment.avg_cost}</p>
+                    <p>Website: ${apartment.website ? `<a href="${apartment.website}" target="_blank">${apartment.website}</a>` : 'N/A'}</p>
+                    <p>Email: ${apartment.email || 'N/A'}</p>
+                    <p>Address: ${apartment.address}</p>
+                `;
+                resultsDiv.appendChild(apartmentDiv);
             });
-            resultsDiv.appendChild(ul);
         }
     </script>
 </body>
