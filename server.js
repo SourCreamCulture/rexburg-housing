@@ -8,10 +8,10 @@ let pool;
 async function initializePool() {
     try {
         pool = await mysql.createPool({
-            host: 'localhost',
-            user: '',
-            password: '',
-            database: 'class_project',
+            host: process.env.DB_HOST || 'localhost',
+            user: process.env.DB_USER || 'root',
+            password: process.env.DB_PASSWORD || '',
+            database: process.env.DB_NAME || 'class_project',
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0
@@ -32,6 +32,25 @@ app.get('/api/search', async (req, res) => {
 
     try {
         const { name, gender, maxCost, pool: hasPool, unitLaundry, gym, grill } = req.query;
+        
+        // Input validation
+        if (name && typeof name !== 'string') {
+            return res.status(400).json({ error: 'Invalid name parameter' });
+        }
+        if (gender && !['M', 'F'].includes(gender)) {
+            return res.status(400).json({ error: 'Invalid gender parameter' });
+        }
+        if (maxCost && (isNaN(parseFloat(maxCost)) || parseFloat(maxCost) < 0)) {
+            return res.status(400).json({ error: 'Invalid maxCost parameter' });
+        }
+        
+        // Validate amenity parameters
+        const amenityParams = [hasPool, unitLaundry, gym, grill];
+        for (const param of amenityParams) {
+            if (param && param !== 'Y') {
+                return res.status(400).json({ error: 'Invalid amenity parameter' });
+            }
+        }
         
         let query = `
             SELECT DISTINCT a.*, ac.website, ac.email, ac.address 
@@ -55,16 +74,20 @@ app.get('/api/search', async (req, res) => {
             params.push(parseFloat(maxCost));
         }
         if (hasPool === 'Y') {
-            query += ' AND am.pool = "Y"';
+            query += ' AND am.pool = ?';
+            params.push('Y');
         }
         if (unitLaundry === 'Y') {
-            query += ' AND am.unit_laundry = "Y"';
+            query += ' AND am.unit_laundry = ?';
+            params.push('Y');
         }
         if (gym === 'Y') {
-            query += ' AND am.gym = "Y"';
+            query += ' AND am.gym = ?';
+            params.push('Y');
         }
         if (grill === 'Y') {
-            query += ' AND am.grill = "Y"';
+            query += ' AND am.grill = ?';
+            params.push('Y');
         }
 
         const [rows] = await pool.execute(query, params);

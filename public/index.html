@@ -72,7 +72,20 @@
         document.getElementById('searchForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
-            const searchParams = new URLSearchParams(formData);
+            
+            // Handle checkboxes properly - explicitly set values for checked/unchecked state
+            const searchParams = new URLSearchParams();
+            for (const [key, value] of formData.entries()) {
+                searchParams.append(key, value);
+            }
+            
+            // Ensure checkbox values are properly handled
+            const checkboxes = e.target.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked && !formData.has(checkbox.name)) {
+                    searchParams.append(checkbox.name, checkbox.value);
+                }
+            });
             
             try {
                 const response = await fetch(`/api/search?${searchParams.toString()}`);
@@ -80,6 +93,7 @@
                 displayResults(data);
             } catch (error) {
                 console.error('Error:', error);
+                document.getElementById('results').innerHTML = '<p>Error occurred while searching. Please try again.</p>';
             }
         });
 
@@ -95,14 +109,43 @@
             results.forEach(apartment => {
                 const apartmentDiv = document.createElement('div');
                 apartmentDiv.className = 'apartment';
-                apartmentDiv.innerHTML = `
-                    <h2>${apartment.name}</h2>
-                    <p>Gender: ${apartment.gender}</p>
-                    <p>Average Cost: $${apartment.avg_cost}</p>
-                    <p>Website: ${apartment.website ? `<a href="${apartment.website}" target="_blank">${apartment.website}</a>` : 'N/A'}</p>
-                    <p>Email: ${apartment.email || 'N/A'}</p>
-                    <p>Address: ${apartment.address}</p>
-                `;
+                
+                // Create elements safely to prevent XSS
+                const nameEl = document.createElement('h2');
+                nameEl.textContent = apartment.name || 'N/A';
+                
+                const genderEl = document.createElement('p');
+                genderEl.textContent = `Gender: ${apartment.gender || 'N/A'}`;
+                
+                const costEl = document.createElement('p');
+                costEl.textContent = `Average Cost: $${apartment.avg_cost || 'N/A'}`;
+                
+                const websiteEl = document.createElement('p');
+                websiteEl.textContent = 'Website: ';
+                if (apartment.website) {
+                    const linkEl = document.createElement('a');
+                    linkEl.href = apartment.website;
+                    linkEl.target = '_blank';
+                    linkEl.rel = 'noopener noreferrer';
+                    linkEl.textContent = apartment.website;
+                    websiteEl.appendChild(linkEl);
+                } else {
+                    websiteEl.textContent += 'N/A';
+                }
+                
+                const emailEl = document.createElement('p');
+                emailEl.textContent = `Email: ${apartment.email || 'N/A'}`;
+                
+                const addressEl = document.createElement('p');
+                addressEl.textContent = `Address: ${apartment.address || 'N/A'}`;
+                
+                apartmentDiv.appendChild(nameEl);
+                apartmentDiv.appendChild(genderEl);
+                apartmentDiv.appendChild(costEl);
+                apartmentDiv.appendChild(websiteEl);
+                apartmentDiv.appendChild(emailEl);
+                apartmentDiv.appendChild(addressEl);
+                
                 resultsDiv.appendChild(apartmentDiv);
             });
         }
